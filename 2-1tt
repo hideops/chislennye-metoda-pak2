@@ -1,0 +1,73 @@
+from math import log
+import matplotlib.pyplot as plt
+
+
+def f(x):
+    return log(x + 2) - x ** 2
+
+
+def df(x):
+    return 1 / (x + 2) - 2 * x
+
+
+a, b = 1, 1.5
+
+m = abs(df(a))
+M = abs(df(b))
+lam = -2 / (m + M)
+q = (M - m) / (M + m)
+
+
+def phi(x):
+    return x - lam * f(x)
+
+
+def simple_iteration(x0, eps):
+    xs = [x0]
+    while True:
+        x = phi(xs[-1])
+        xs.append(x)
+        if q / (1 - q) * abs(x - xs[-2]) < eps:
+            return xs
+
+
+def newton(x0, eps):
+    xs = [x0]
+    while True:
+        x = xs[-1] - f(xs[-1]) / df(xs[-1])
+        xs.append(x)
+        if abs(x - xs[-2]) < eps:
+            return xs
+
+
+eps = 0.00001
+x0 = (a + b) / 2
+
+si = simple_iteration(x0, eps)
+nt = newton(b, eps)
+print("простая итерация:", si[-1], len(si) - 1)
+print("ньютон:", nt[-1], len(nt) - 1)
+
+xs = [a + (b - a) * i / 100 for i in range(101)]
+plt.plot(xs, [f(x) for x in xs])
+plt.axhline(0, color="k")
+plt.grid()
+plt.show()
+
+root = newton(b, 1e-14)[-1]
+plt.semilogy([abs(x - root) for x in si], "o-", label="простая итерация")
+plt.semilogy([abs(x - root) for x in nt], "s-", label="ньютон")
+plt.xlabel("k")
+plt.ylabel("погрешность")
+plt.legend()
+plt.grid()
+plt.show()
+
+eps_list = [10 ** -p for p in range(1, 11)]
+plt.semilogx(eps_list, [len(simple_iteration(x0, e)) - 1 for e in eps_list], "o-", label="простая итерация")
+plt.semilogx(eps_list, [len(newton(b, e)) - 1 for e in eps_list], "s-", label="ньютон")
+plt.xlabel("eps")
+plt.ylabel("итераций")
+plt.legend()
+plt.grid()
+plt.show()
